@@ -1,17 +1,48 @@
+/* Agrega esto a tu estilo principal */
+
 #book {
-  width: 600px;
-  height: 800px;
-  background: white;
-}
-
-.page {
-  background: white;
+  flex: 1;
+  width: 100% !important;
+  height: auto !important; /* Cambiado de 100% a auto */
+  max-height: calc(100vh - 200px);
+  position: relative;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px var(--shadow);
+  overflow: hidden;
+  /* Centrar y permitir scroll si es necesario */
+  margin: 0 auto;
 }
 
-canvas {
+/* Contenedor principal flex para centrar */
+.app-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centrar horizontalmente */
+  justify-content: center; /* Centrar verticalmente */
   width: 100%;
-  height: 100%;
+  padding: 20px;
+  overflow: auto; /* Permitir scroll si es necesario */
+}
+
+/* Asegurar que las páginas mantengan proporción */
+.page {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  overflow: hidden;
+}
+
+.page img, .page canvas {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important; /* Mantener proporción */
 }
