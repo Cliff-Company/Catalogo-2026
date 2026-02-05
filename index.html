@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -7,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <style>
         :root {
             --primary: #0A0A0A;
@@ -30,7 +31,8 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        html, body {
+        html,
+        body {
             width: 100%;
             height: 100%;
             overflow: hidden;
@@ -65,8 +67,15 @@
         }
 
         @keyframes gridPulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.6; }
+
+            0%,
+            100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
         }
 
         /* Header */
@@ -98,8 +107,13 @@
         }
 
         @keyframes scanLine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
         }
 
         .logo-container {
@@ -116,6 +130,7 @@
                 opacity: 0;
                 transform: translateY(-30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -197,6 +212,27 @@
             transform: scale(0.95);
         }
 
+        .zoom-wrapper {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+            touch-action: none;
+            /* necesario para pinch zoom */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-wrapper.zoomed {
+            cursor: grab;
+        }
+
+        .zoom-wrapper.zoomed:active {
+            cursor: grabbing;
+        }
+
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .header {
@@ -204,17 +240,17 @@
                 max-height: 100px;
                 padding: 10px 15px;
             }
-            
+
             .logo-img {
                 max-width: 80vw;
                 max-height: 70px;
             }
-            
+
             .app-container {
                 height: calc(100% - 100px);
                 padding: 15px;
             }
-            
+
             #book {
                 max-height: calc(100vh - 200px);
             }
@@ -226,27 +262,27 @@
                 max-height: 80px;
                 padding: 8px 10px;
             }
-            
+
             .logo-img {
                 max-width: 85vw;
                 max-height: 60px;
             }
-            
+
             .app-container {
                 height: calc(100% - 80px);
                 padding: 10px;
             }
-            
+
             #book {
                 max-height: calc(100vh - 180px);
             }
-            
+
             .controls {
                 padding: 10px;
                 gap: 15px;
                 margin-top: 10px;
             }
-            
+
             .controls button {
                 width: 50px;
                 height: 50px;
@@ -259,16 +295,16 @@
                 min-height: 80px;
                 max-height: 80px;
             }
-            
+
             .logo-img {
                 max-height: 60px;
             }
-            
+
             .app-container {
                 height: calc(100% - 80px);
                 padding: 10px;
             }
-            
+
             .controls {
                 padding: 10px;
                 margin-top: 10px;
@@ -285,16 +321,104 @@
     </div>
 
     <div class="app-container">
-        <div id="book"></div>
+        <div class="zoom-wrapper">
+            <div id="book"></div>
+        </div>
     </div>
 
     <script src="vendor/pageflip/page-flip.browser.js"></script>
-    <script type="module" src="assets/js/app.js"></script>
-    
-
 
     <!-- App -->
     <script type="module" src="assets/js/app.js"></script>
+    <script>
+        const wrapper = document.querySelector(".zoom-wrapper");
+
+        let scale = 1;
+        let minScale = 1;
+        let maxScale = 3;
+
+        let startDistance = 0;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let translateX = 0;
+        let translateY = 0;
+
+        /* =========================
+           PC ZOOM (rueda mouse)
+        ========================= */
+        wrapper.addEventListener("wheel", (e) => {
+            e.preventDefault();
+
+            const delta = e.deltaY * -0.001;
+            scale += delta;
+            scale = Math.min(Math.max(minScale, scale), maxScale);
+
+            applyTransform();
+        });
+
+        /* =========================
+           PC DRAG cuando hay zoom
+        ========================= */
+        wrapper.addEventListener("mousedown", (e) => {
+            if (scale <= 1) return;
+            isDragging = true;
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+            wrapper.classList.add("zoomed");
+        });
+
+        window.addEventListener("mouseup", () => {
+            isDragging = false;
+        });
+
+        window.addEventListener("mousemove", (e) => {
+            if (!isDragging) return;
+
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+
+            applyTransform();
+        });
+
+        /* =========================
+           MOBILE PINCH ZOOM
+        ========================= */
+        wrapper.addEventListener("touchstart", (e) => {
+            if (e.touches.length === 2) {
+                startDistance = getDistance(e.touches);
+            }
+        });
+
+        wrapper.addEventListener("touchmove", (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const newDistance = getDistance(e.touches);
+                const delta = newDistance - startDistance;
+
+                scale += delta * 0.005;
+                scale = Math.min(Math.max(minScale, scale), maxScale);
+
+                startDistance = newDistance;
+                applyTransform();
+            }
+        }, { passive: false });
+
+        function getDistance(touches) {
+            return Math.sqrt(
+                Math.pow(touches[0].clientX - touches[1].clientX, 2) +
+                Math.pow(touches[0].clientY - touches[1].clientY, 2)
+            );
+        }
+
+        /* =========================
+           Aplicar transform
+        ========================= */
+        function applyTransform() {
+            wrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        }
+    </script>
+
 
 </body>
 
