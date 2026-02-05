@@ -84,7 +84,7 @@
             border-bottom: 2px solid var(--border);
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             padding: 15px 20px;
             min-height: 120px;
             max-height: 140px;
@@ -93,6 +93,7 @@
             overflow: hidden;
             flex-shrink: 0;
             z-index: 10;
+            gap: 20px;
         }
 
         .header::before {
@@ -120,7 +121,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 100%;
+            flex: 1;
             height: 100%;
             animation: fadeInDown 0.8s ease-out;
         }
@@ -138,11 +139,48 @@
         }
 
         .logo-img {
-            max-width: min(600px, 90vw);
+            max-width: min(500px, 60vw);
             max-height: 90px;
             height: auto;
             width: auto;
             object-fit: contain;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, var(--surface-light) 0%, var(--secondary) 100%);
+            border: 2px solid var(--border);
+            color: var(--accent);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px var(--shadow);
+            white-space: nowrap;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
         }
 
         /* Main App Container */
@@ -238,16 +276,45 @@
         }
 
         /* Responsive Design */
+        @media (max-width: 1024px) {
+            .action-btn {
+                padding: 10px 18px;
+                font-size: 13px;
+            }
+
+            .action-btn::before {
+                width: 16px;
+                height: 16px;
+                font-size: 16px;
+            }
+        }
+
         @media (max-width: 768px) {
             .header {
                 min-height: 100px;
                 max-height: 100px;
                 padding: 10px 15px;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .logo-container {
+                order: 1;
+            }
+
+            .action-buttons {
+                order: 2;
+                gap: 10px;
             }
 
             .logo-img {
                 max-width: 80vw;
-                max-height: 70px;
+                max-height: 60px;
+            }
+
+            .action-btn {
+                padding: 8px 16px;
+                font-size: 12px;
             }
 
             .app-container {
@@ -262,23 +329,37 @@
 
         @media (max-width: 480px) {
             .header {
-                min-height: 80px;
-                max-height: 80px;
+                min-height: 120px;
+                max-height: 120px;
                 padding: 8px 10px;
             }
 
             .logo-img {
                 max-width: 85vw;
-                max-height: 60px;
+                max-height: 50px;
+            }
+
+            .action-buttons {
+                gap: 8px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .action-btn {
+                padding: 8px 12px;
+                font-size: 11px;
+                flex: 1;
+                justify-content: center;
+                max-width: 140px;
             }
 
             .app-container {
-                height: calc(100% - 80px);
+                height: calc(100% - 120px);
                 padding: 10px;
             }
 
             #book {
-                max-height: calc(100vh - 180px);
+                max-height: calc(100vh - 200px);
             }
 
             .controls {
@@ -296,16 +377,27 @@
 
         @media (orientation: landscape) and (max-height: 600px) {
             .header {
-                min-height: 80px;
-                max-height: 80px;
+                min-height: 70px;
+                max-height: 70px;
+                flex-direction: row;
+                padding: 8px 15px;
             }
 
             .logo-img {
-                max-height: 60px;
+                max-height: 50px;
+            }
+
+            .action-buttons {
+                gap: 8px;
+            }
+
+            .action-btn {
+                padding: 6px 12px;
+                font-size: 11px;
             }
 
             .app-container {
-                height: calc(100% - 80px);
+                height: calc(100% - 70px);
                 padding: 10px;
             }
 
@@ -321,6 +413,14 @@
     <div class="header">
         <div class="logo-container">
             <img src="img/logo.png" alt="Cliff and Company" class="logo-img">
+        </div>
+        <div class="action-buttons">
+            <button id="homeBtn" class="action-btn">
+                <span>Inicio</span>
+            </button>
+            <button id="downloadBtn" class="action-btn">
+                <span>Descargar PDF</span>
+            </button>
         </div>
     </div>
 

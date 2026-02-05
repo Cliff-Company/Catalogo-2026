@@ -16,6 +16,8 @@ async function init() {
         const prevBtn = document.getElementById("prevBtn");
         const nextBtn = document.getElementById("nextBtn");
         const pageCounter = document.getElementById("pageCounter");
+        const homeBtn = document.getElementById("homeBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
 
         if (!container) {
             throw new Error("No se encontró el elemento #book");
@@ -64,6 +66,40 @@ async function init() {
 
 
         const pageFlip = flipbook.instance;
+
+        /* =========================
+   BOTÓN INICIO
+========================= */
+        if (homeBtn) {
+            homeBtn.addEventListener("click", () => {
+                if (!pageFlip) return;
+
+                // Forzar estado estable antes de cambiar
+                pageFlip.turnToPage(0);
+
+                // Alternativa si la anterior no funciona:
+                // pageFlip.flip(0);
+            });
+        }
+
+        /* =========================
+           BOTÓN DESCARGAR
+        ========================= */
+        if (downloadBtn) {
+            downloadBtn.addEventListener("click", () => {
+                const downloadUrl =
+                    "https://drive.google.com/uc?export=download&id=1puElKm2m4sTyhLdzaHYNoPZHqTKO6M4X";
+
+                const link = document.createElement("a");
+                link.href = downloadUrl;
+                link.target = "_blank";
+                link.download = "catalogo-2026.pdf";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+
 
         console.log("Flipbook inicializado", pageFlip);
 
