@@ -2,9 +2,8 @@ import { renderPDFPages } from "./pdf-renderer.js";
 import { initFlipbook } from "./flipbook.js";
 
 const CONFIG = {
-    // 🔹 Google Drive direct link
-    pdfPath: "https://docs.google.com/uc?export=download&id=1puElKm2m4sTyhLdzaHYNoPZHqTKO6M4X",
-    scale: 2, // calidad alta
+    pdfPath: "assets/pdf/catalogo-2026.pdf",
+    scale: 2,
     flippingTime: 600,
     mobileScrollSupport: true
 };
@@ -52,9 +51,6 @@ async function init() {
 
         const isMobile = window.innerWidth < 900;
 
-        /* =========================
-           2. INIT FLIPBOOK
-        ========================= */
         const flipbook = initFlipbook(container, pages, {
             ...CONFIG,
             width,
@@ -62,10 +58,10 @@ async function init() {
             maintainRatio: true,
             pageRatio: ratio,
             size: "fixed",
-            usePortrait: isMobile,  // 1 página en móvil, 2 en PC
-            showCover: true,        // 👈 primera página sola como libro real
-            startPage: 0
+            usePortrait: isMobile,
+            showCover: true   // 👈 ESTA es la clave
         });
+
 
         const pageFlip = flipbook.instance;
 
@@ -97,7 +93,7 @@ async function init() {
         }, 300);
 
         /* =========================
-           DEBUG GLOBAL
+           DEBUG
         ========================= */
         window.flipbookApp = {
             pageFlip,
@@ -215,5 +211,3 @@ if (document.readyState === "loading") {
 }
 
 console.log("app.js cargado correctamente");
-
-
