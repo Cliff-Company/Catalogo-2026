@@ -218,7 +218,6 @@
             overflow: hidden;
             position: relative;
             touch-action: none;
-            /* necesario para pinch zoom */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -232,6 +231,11 @@
             cursor: grabbing;
         }
 
+        /* MUY IMPORTANTE */
+        .zoom-wrapper.zoomed #book {
+            pointer-events: none;
+            /* bloquea PageFlip */
+        }
 
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -334,46 +338,66 @@
         const wrapper = document.querySelector(".zoom-wrapper");
 
         let scale = 1;
-        let minScale = 1;
-        let maxScale = 3;
+        const MIN_SCALE = 1;
+        const MAX_SCALE = 3;
 
-        let startDistance = 0;
-        let isDragging = false;
+        let isPanning = false;
         let startX = 0;
         let startY = 0;
         let translateX = 0;
         let translateY = 0;
+        let startDistance = 0;
 
-        /* =========================
-           PC ZOOM (rueda mouse)
-        ========================= */
+        /* =====================
+           UTIL
+        ===================== */
+        function applyTransform() {
+            wrapper.style.transform =
+                `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+
+            if (scale > 1) {
+                wrapper.classList.add("zoomed");
+            } else {
+                resetPosition();
+            }
+        }
+
+        function resetPosition() {
+            scale = 1;
+            translateX = 0;
+            translateY = 0;
+            wrapper.style.transform = "translate(0,0) scale(1)";
+            wrapper.classList.remove("zoomed");
+        }
+
+        /* =====================
+           PC ZOOM
+        ===================== */
         wrapper.addEventListener("wheel", (e) => {
             e.preventDefault();
 
-            const delta = e.deltaY * -0.001;
-            scale += delta;
-            scale = Math.min(Math.max(minScale, scale), maxScale);
+            scale += e.deltaY * -0.0015;
+            scale = Math.min(Math.max(MIN_SCALE, scale), MAX_SCALE);
 
             applyTransform();
-        });
+        }, { passive: false });
 
-        /* =========================
-           PC DRAG cuando hay zoom
-        ========================= */
+        /* =====================
+           PC PAN
+        ===================== */
         wrapper.addEventListener("mousedown", (e) => {
             if (scale <= 1) return;
-            isDragging = true;
+
+            isPanning = true;
             startX = e.clientX - translateX;
             startY = e.clientY - translateY;
-            wrapper.classList.add("zoomed");
-        });
 
-        window.addEventListener("mouseup", () => {
-            isDragging = false;
+            e.preventDefault();
+            e.stopPropagation();
         });
 
         window.addEventListener("mousemove", (e) => {
-            if (!isDragging) return;
+            if (!isPanning) return;
 
             translateX = e.clientX - startX;
             translateY = e.clientY - startY;
@@ -381,44 +405,58 @@
             applyTransform();
         });
 
-        /* =========================
-           MOBILE PINCH ZOOM
-        ========================= */
+        window.addEventListener("mouseup", () => {
+            isPanning = false;
+        });
+
+        /* =====================
+           MOBILE PINCH
+        ===================== */
         wrapper.addEventListener("touchstart", (e) => {
             if (e.touches.length === 2) {
                 startDistance = getDistance(e.touches);
-            }
-        });
-
-        wrapper.addEventListener("touchmove", (e) => {
-            if (e.touches.length === 2) {
                 e.preventDefault();
-                const newDistance = getDistance(e.touches);
-                const delta = newDistance - startDistance;
-
-                scale += delta * 0.005;
-                scale = Math.min(Math.max(minScale, scale), maxScale);
-
-                startDistance = newDistance;
-                applyTransform();
+                e.stopPropagation();
             }
         }, { passive: false });
 
-        function getDistance(touches) {
-            return Math.sqrt(
-                Math.pow(touches[0].clientX - touches[1].clientX, 2) +
-                Math.pow(touches[0].clientY - touches[1].clientY, 2)
-            );
-        }
+        wrapper.addEventListener("touchmove", (e) => {
+            if (e.touches.length === 2) {
+                const newDistance = getDistance(e.touches);
+                scale += (newDistance - startDistance) * 0.004;
+                scale = Math.min(Math.max(MIN_SCALE, scale), MAX_SCALE);
+                startDistance = newDistance;
 
-        /* =========================
-           Aplicar transform
-        ========================= */
-        function applyTransform() {
-            wrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+                applyTransform();
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, { passive: false });
+
+        /* =====================
+           MOBILE PAN
+        ===================== */
+        wrapper.addEventListener("touchmove", (e) => {
+            if (scale <= 1 || e.touches.length !== 1) return;
+
+            const touch = e.touches[0];
+            translateX += touch.movementX || 0;
+            translateY += touch.movementY || 0;
+
+            applyTransform();
+            e.preventDefault();
+            e.stopPropagation();
+        }, { passive: false });
+
+        /* =====================
+           HELPERS
+        ===================== */
+        function getDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
         }
     </script>
-
 
 </body>
 

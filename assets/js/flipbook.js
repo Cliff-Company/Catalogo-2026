@@ -7,7 +7,7 @@ export function initFlipbook(container, pages, config = {}) {
   container.innerHTML = "";
   
   // PROPORCIÓN DE PÁGINA ESTÁNDAR (A4: 210x297 = ~0.707)
-  const PAGE_RATIO = 0.95; // Proporción ancho/alto (A4 portrait)
+  const PAGE_RATIO = 0.85; // Proporción ancho/alto (A4 portrait)
   
   // Configuración por defecto
   const defaultConfig = {
@@ -121,5 +121,4 @@ export function initFlipbook(container, pages, config = {}) {
     destroy,
     getDimensions: calculateDimensions
   };
-
 }
