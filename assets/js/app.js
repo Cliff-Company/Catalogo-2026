@@ -2,8 +2,8 @@ import { renderPDFPages } from "./pdf-renderer.js";
 import { initFlipbook } from "./flipbook.js";
 
 const CONFIG = {
-    pdfPath: "assets/pdf/catalogo-ejemplo.pdf",
-    scale: 1, // 1 = tamaño real del PDF
+    pdfPath: "assets/pdf/catalogo-2026.pdf",
+    scale: 2,
     flippingTime: 600,
     mobileScrollSupport: true
 };
@@ -58,9 +58,10 @@ async function init() {
             maintainRatio: true,
             pageRatio: ratio,
             size: "fixed",
-            usePortrait: isMobile,      // 👈 clave
-            showCover: false
+            usePortrait: isMobile,
+            showCover: true   // 👈 ESTA es la clave
         });
+
 
         const pageFlip = flipbook.instance;
 
