@@ -3,14 +3,9 @@ import { initFlipbook } from "./flipbook.js";
 
 const CONFIG = {
     pdfPath: "assets/pdf/catalogo-ejemplo.pdf",
-    scale: 1,
-    // Agregar configuraciones para el flipbook
+    scale: 1, // 1 = tamaño real del PDF
     flippingTime: 600,
-    mobileScrollSupport: true,
-    minWidth: 280,
-    maxWidth: 1400,
-    minHeight: 400,
-    maxHeight: 1000
+    mobileScrollSupport: true
 };
 
 async function init() {
@@ -26,68 +21,93 @@ async function init() {
             throw new Error("No se encontró el elemento #book");
         }
 
-        // Mostrar loading
+        /* =========================
+           LOADING
+        ========================= */
         container.innerHTML = `
             <div class="loading">
                 <div class="loading-spinner"></div>
-                <span>Cargando PDF...</span>
+                <span>Cargando Catálogo...</span>
             </div>
         `;
 
-        // 1. Renderizar páginas del PDF
-        const pages = await renderPDFPages(CONFIG.pdfPath, CONFIG.scale);
-        console.log("Páginas generadas:", pages.length);
+        /* =========================
+           1. RENDER PDF
+        ========================= */
+        const pdfData = await renderPDFPages(CONFIG.pdfPath, CONFIG.scale);
 
-        if (pages.length === 0) {
+        const { pages, width, height, ratio } = pdfData;
+
+        console.log("PDF renderizado:", {
+            pages: pages.length,
+            width,
+            height,
+            ratio
+        });
+
+        if (!pages || pages.length === 0) {
             throw new Error("No se pudieron generar páginas del PDF");
         }
 
-        // 2. Inicializar flipbook (ASÍ ES COMO DEBES LLAMARLO)
-        const flipbook = initFlipbook(container, pages, CONFIG);
-        
-        // flipbook ahora es un objeto con { instance, updateSize, destroy }
-        const pageFlip = flipbook.instance;
-        
-        console.log("Flipbook inicializado:", pageFlip);
+        const isMobile = window.innerWidth < 900;
 
-        // 3. Configurar controles de navegación
+        const flipbook = initFlipbook(container, pages, {
+            ...CONFIG,
+            width,
+            height,
+            maintainRatio: true,
+            pageRatio: ratio,
+            size: "fixed",
+            usePortrait: isMobile,      // 👈 clave
+            showCover: false
+        });
+
+        const pageFlip = flipbook.instance;
+
+        console.log("Flipbook inicializado", pageFlip);
+
+        /* =========================
+           3. CONTROLES
+        ========================= */
         if (prevBtn && nextBtn && pageCounter) {
             setupNavigation(pageFlip, pages.length, prevBtn, nextBtn, pageCounter);
         }
 
-        // 4. Configurar redimensionamiento CORRECTO
+        /* =========================
+           4. RESIZE
+        ========================= */
         const resizeHandler = () => {
-            console.log("Redimensionando...");
-            // Usar updateSize del objeto flipbook
+            console.log("Redimensionando flipbook...");
             flipbook.updateSize();
         };
 
-        // Usar debounce para evitar muchas llamadas
         let resizeTimeout;
         window.addEventListener("resize", () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(resizeHandler, 250);
         });
 
-        // 5. Forzar un primer redimensionamiento después de un delay
         setTimeout(() => {
             flipbook.updateSize();
-        }, 500);
+        }, 300);
 
-        console.log("Aplicación inicializada correctamente");
-
-        // 6. Exponer para debug
+        /* =========================
+           DEBUG
+        ========================= */
         window.flipbookApp = {
             pageFlip,
             flipbook,
-            pages,
+            pdfData,
             goToPage: (pageNum) => {
                 if (pageFlip && pageNum >= 1 && pageNum <= pages.length) {
                     pageFlip.flip(pageNum - 1);
                 }
             },
-            getCurrentPage: () => pageFlip ? pageFlip.getCurrentPageIndex() + 1 : 1
+            getCurrentPage: () =>
+                pageFlip ? pageFlip.getCurrentPageIndex() + 1 : 1
         };
+
+        console.log("Aplicación inicializada correctamente");
 
     } catch (error) {
         console.error("ERROR DETECTADO:", error);
@@ -95,38 +115,32 @@ async function init() {
     }
 }
 
-// Función para configurar navegación
+/* =========================
+   NAVEGACIÓN
+========================= */
 function setupNavigation(pageFlip, totalPages, prevBtn, nextBtn, pageCounter) {
     if (!pageFlip) return;
 
-    // Actualizar contador
     const updatePageCounter = () => {
         const currentPage = pageFlip.getCurrentPageIndex() + 1;
         pageCounter.textContent = `Página ${currentPage} de ${totalPages}`;
-        
-        // Actualizar estado de botones
+
         prevBtn.disabled = currentPage <= 1;
         nextBtn.disabled = currentPage >= totalPages;
     };
 
-    // Event listeners para botones
     prevBtn.addEventListener("click", () => {
-        if (!prevBtn.disabled) {
-            pageFlip.flipPrev();
-        }
+        if (!prevBtn.disabled) pageFlip.flipPrev();
     });
 
     nextBtn.addEventListener("click", () => {
-        if (!nextBtn.disabled) {
-            pageFlip.flipNext();
-        }
+        if (!nextBtn.disabled) pageFlip.flipNext();
     });
 
-    // Navegación con teclado
     document.addEventListener("keydown", (e) => {
         if (!pageFlip) return;
-        
-        switch(e.key) {
+
+        switch (e.key) {
             case "ArrowLeft":
                 e.preventDefault();
                 pageFlip.flipPrev();
@@ -146,53 +160,53 @@ function setupNavigation(pageFlip, totalPages, prevBtn, nextBtn, pageCounter) {
         }
     });
 
-    // Escuchar eventos del flipbook
     pageFlip.on("flip", updatePageCounter);
     pageFlip.on("changeState", updatePageCounter);
 
-    // Inicializar contador
     updatePageCounter();
 }
 
-// Función para mostrar errores
+/* =========================
+   ERROR UI
+========================= */
 function showError(message) {
     const container = document.getElementById("book");
     if (!container) return;
-    
+
     container.innerHTML = `
-        <div class="error-container" style="
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: #ff6b6b;
-            text-align: center;
-            padding: 20px;
-        ">
-            <h3 style="margin-bottom: 15px;">⚠️ Error al cargar el flipbook</h3>
-            <p style="margin-bottom: 20px; color: #ccc;">${message}</p>
-            <button onclick="location.reload()" style="
-                background: #FFD700;
-                color: #000;
-                border: none;
-                padding: 10px 25px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-weight: bold;
-            ">
+        <div style="
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            height:100%;
+            color:#ff6b6b;
+            text-align:center;
+            padding:20px;">
+            <h3>⚠️ Error al cargar el flipbook</h3>
+            <p style="color:#ccc;margin:15px 0;">${message}</p>
+            <button onclick="location.reload()"
+                style="
+                    background:#FFD700;
+                    color:#000;
+                    border:none;
+                    padding:10px 25px;
+                    border-radius:5px;
+                    cursor:pointer;
+                    font-weight:bold;">
                 Reintentar
             </button>
         </div>
     `;
 }
 
-// Iniciar cuando el DOM esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+/* =========================
+   INIT
+========================= */
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
 } else {
     init();
 }
 
-// Opcional: para depuración
-console.log("app.js cargado");
+console.log("app.js cargado correctamente");

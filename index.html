@@ -335,6 +335,8 @@
     <!-- App -->
     <script type="module" src="assets/js/app.js"></script>
     <script>
+        let lastTouchX = 0;
+        let lastTouchY = 0;
         const wrapper = document.querySelector(".zoom-wrapper");
 
         let scale = 1;
@@ -436,14 +438,33 @@
         /* =====================
            MOBILE PAN
         ===================== */
+
+        wrapper.addEventListener("touchstart", (e) => {
+            if (scale <= 1 || e.touches.length !== 1) return;
+
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
+
+            e.preventDefault();
+            e.stopPropagation();
+        }, { passive: false });
+
         wrapper.addEventListener("touchmove", (e) => {
             if (scale <= 1 || e.touches.length !== 1) return;
 
             const touch = e.touches[0];
-            translateX += touch.movementX || 0;
-            translateY += touch.movementY || 0;
+
+            const deltaX = touch.clientX - lastTouchX;
+            const deltaY = touch.clientY - lastTouchY;
+
+            translateX += deltaX;
+            translateY += deltaY;
+
+            lastTouchX = touch.clientX;
+            lastTouchY = touch.clientY;
 
             applyTransform();
+
             e.preventDefault();
             e.stopPropagation();
         }, { passive: false });
