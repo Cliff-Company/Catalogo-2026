@@ -86,9 +86,9 @@ async function init() {
            BOTÓN DESCARGAR
         ========================= */
         if (downloadBtn) {
-            downloadBtn.addEventListener("click", () => {
+            downloadBtn.addEventListener("click", () => {   
                 const downloadUrl =
-                    "https://drive.google.com/uc?export=download&id=1puElKm2m4sTyhLdzaHYNoPZHqTKO6M4X";
+                    "https://drive.google.com/uc?export=download&id=1Nkxe5X7FX1bRcU64-ZNPw68yON6rZa52";
 
                 const link = document.createElement("a");
                 link.href = downloadUrl;
@@ -247,3 +247,4 @@ if (document.readyState === "loading") {
 }
 
 console.log("app.js cargado correctamente");
+
